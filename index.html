@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BEES Academy · Avance de capacitación · Logística Total</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --ink:#1a2733;
+    --ink-soft:#4b5b68;
+    --paper:#f6f4ee;
+    --panel:#ffffff;
+    --line:#dcd6c8;
+    --amber:#c8862b;
+    --amber-deep:#9c6417;
+    --navy:#1e3a4c;
+    --ok:#3f7d4f;
+    --ok-bg:#e5f0e2;
+    --warn:#b3821f;
+    --warn-bg:#faf0d8;
+    --bad:#a8402f;
+    --bad-bg:#f6e2dd;
+    --crit:#7a2419;
+    --crit-bg:#efd0c8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Barlow Condensed',sans-serif;
+    letter-spacing:.2px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px 80px;}
+
+  header.top{
+    background:var(--navy);
+    color:#f2ede0;
+    padding:36px 0 30px;
+    border-bottom:6px solid var(--amber);
+  }
+  header.top .wrap{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:18px;}
+  .brand-line{display:flex;align-items:baseline;gap:14px;}
+  .brand-line .tag{
+    font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;
+    color:var(--amber);border:1px solid var(--amber);padding:3px 9px;border-radius:2px;
+    letter-spacing:.5px;
+  }
+  h1.title{font-size:40px;font-weight:700;margin:8px 0 4px;line-height:1;}
+  .subtitle{color:#c9c2ac;font-size:15px;margin:0;}
+  .dist-code{text-align:right;font-size:13px;color:#c9c2ac;line-height:1.5;}
+  .dist-code b{color:#f2ede0;font-size:15px;}
+
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:-34px 0 32px;}
+  .kpi{
+    background:var(--panel);border:1px solid var(--line);border-radius:3px;
+    padding:18px 20px;box-shadow:0 3px 10px rgba(30,58,76,.06);
+  }
+  .kpi .label{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-soft);font-weight:600;}
+  .kpi .value{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:38px;margin-top:4px;line-height:1;}
+  .kpi .sub{font-size:12.5px;color:var(--ink-soft);margin-top:6px;}
+  .kpi.status-ok .value{color:var(--ok);}
+  .kpi.status-warn .value{color:var(--warn);}
+  .kpi.status-bad .value{color:var(--bad);}
+  .kpi.status-crit .value{color:var(--crit);}
+  .pill{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:20px;margin-top:6px;}
+  .pill.ok{background:var(--ok-bg);color:var(--ok);}
+  .pill.warn{background:var(--warn-bg);color:var(--warn);}
+  .pill.bad{background:var(--bad-bg);color:var(--bad);}
+  .pill.crit{background:var(--crit-bg);color:var(--crit);}
+
+  section{margin-bottom:38px;}
+  .section-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;border-bottom:2px solid var(--ink);padding-bottom:8px;}
+  .section-head h2{font-size:26px;margin:0;font-weight:700;}
+  .section-head .note{font-size:13px;color:var(--ink-soft);}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:22px;}
+
+  .chart-box{height:280px;}
+
+  .threshold-legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:var(--ink-soft);}
+  .threshold-legend span{display:inline-flex;align-items:center;gap:6px;}
+  .threshold-legend i{width:11px;height:11px;border-radius:2px;display:inline-block;}
+
+  /* chart mode toggle */
+  .chart-controls{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+  .toggle-group{display:inline-flex;border:1px solid var(--line);border-radius:3px;overflow:hidden;}
+  .toggle-btn{
+    font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;padding:8px 16px;border:none;
+    background:#fff;color:var(--ink-soft);cursor:pointer;
+  }
+  .toggle-btn.active{background:var(--navy);color:#fff;}
+  .chart-sup-select{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-soft);}
+  .chart-sup-select select{
+    font-family:'Inter',sans-serif;font-size:14px;padding:6px 10px;border:1px solid var(--line);
+    border-radius:3px;background:#fff;color:var(--ink);
+  }
+
+  /* alerts */
+  .alert-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .alert-panel h3{font-size:18px;margin:0 0 4px;font-weight:600;}
+  .alert-panel .alert-sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;}
+  .alert-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  .alert-table thead th{
+    text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:12px;
+    text-transform:uppercase;letter-spacing:.3px;color:var(--ink-soft);
+    border-bottom:1.5px solid var(--ink);padding:6px 8px;
+  }
+  .alert-table thead th.num{text-align:center;}
+  .alert-table tbody td{padding:6px 8px;border-bottom:1px solid var(--line);}
+  .alert-table tbody td.num{text-align:center;font-variant-numeric:tabular-nums;}
+  .alert-empty{font-size:13.5px;color:var(--ok);padding:10px 0;}
+  @media(max-width:760px){ .alert-grid{grid-template-columns:1fr;} }
+
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  thead th{
+    text-align:left;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;
+    text-transform:uppercase;letter-spacing:.4px;color:var(--ink-soft);
+    border-bottom:2px solid var(--ink);padding:9px 10px;white-space:nowrap;
+  }
+  thead th.num{text-align:center;}
+  tbody td{padding:9px 10px;border-bottom:1px solid var(--line);}
+  tbody td.num{text-align:center;font-variant-numeric:tabular-nums;}
+  tbody tr.supervisor-row{cursor:pointer;background:#f1ede1;font-weight:600;}
+  tbody tr.supervisor-row:hover{background:#e9e3d1;}
+  tbody tr.vendor-row{display:none;font-size:13.5px;color:var(--ink-soft);}
+  tbody tr.vendor-row.open{display:table-row;}
+  tbody tr.vendor-row td:first-child{padding-left:28px;}
+  .caret{display:inline-block;width:14px;transition:transform .15s ease;}
+  tr.expanded .caret{transform:rotate(90deg);}
+
+  .cell-pct{
+    display:inline-block;min-width:58px;padding:3px 8px;border-radius:3px;font-weight:600;font-size:13.5px;
+  }
+  .cell-pct.ok{background:var(--ok-bg);color:var(--ok);}
+  .cell-pct.warn{background:var(--warn-bg);color:var(--warn);}
+  .cell-pct.bad{background:var(--bad-bg);color:var(--bad);}
+  .cell-pct.crit{background:var(--crit-bg);color:var(--crit);}
+  .cell-pct.na{background:transparent;color:#b7b0a0;font-weight:400;}
+
+  .filter-row{display:flex;gap:18px;flex-wrap:wrap;align-items:end;margin-bottom:16px;}
+  .filter-row label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.4px;color:var(--ink-soft);}
+  .filter-row select, .filter-row input{
+    font-family:'Inter',sans-serif;font-size:14px;padding:7px 10px;border:1px solid var(--line);
+    border-radius:3px;background:#fff;color:var(--ink);min-width:150px;
+  }
+  .filter-row .search-label input{min-width:190px;}
+  .detail-count{font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;}
+  .detail-scroll{max-height:520px;overflow-y:auto;border:1px solid var(--line);border-radius:3px;}
+  #detailTable{font-size:13.5px;}
+  #detailTable thead th{position:sticky;top:0;background:var(--panel);z-index:1;}
+  #detailTable tbody td{white-space:nowrap;}
+  .estado-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+  .estado-dot.ok{background:var(--ok);}
+  .estado-dot.warn{background:var(--warn);}
+  .estado-dot.bad{background:var(--bad);}
+  .empty-row td{text-align:center;color:var(--ink-soft);padding:24px;}
+
+  .upload-panel{border:1.5px dashed var(--line);border-radius:3px;padding:26px;text-align:center;background:#fbfaf6;}
+  .upload-panel input[type=file]{display:none;}
+  .upload-btn{
+    display:inline-block;background:var(--amber);color:#fff;font-weight:600;font-size:14px;
+    padding:11px 22px;border-radius:3px;cursor:pointer;border:none;font-family:'Inter',sans-serif;
+  }
+  .upload-btn:hover{background:var(--amber-deep);}
+  .upload-status{margin-top:12px;font-size:13.5px;color:var(--ink-soft);min-height:18px;}
+  .upload-status.err{color:var(--bad);}
+  .upload-status.ok{color:var(--ok);}
+  .download-btn{
+    display:inline-block;background:var(--navy);color:#fff;font-weight:600;font-size:13.5px;
+    padding:9px 18px;border-radius:3px;cursor:pointer;border:none;font-family:'Inter',sans-serif;margin-top:14px;
+  }
+  .download-btn:hover{background:#132631;}
+  .download-btn[disabled]{opacity:.35;cursor:not-allowed;}
+
+  footer{color:var(--ink-soft);font-size:12.5px;text-align:center;padding:26px 0 10px;}
+
+  @media(max-width:760px){
+    .kpi-row{grid-template-columns:1fr 1fr;}
+    h1.title{font-size:30px;}
+    .wrap{padding:0 16px 60px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div>
+      <div class="brand-line">
+        <span class="tag">BEES ACADEMY</span>
+      </div>
+      <h1 class="title">Avance de capacitación</h1>
+      <p class="subtitle">Seguimiento mensual de cursos por supervisor y vendedor — Logística Total SRL</p>
+    </div>
+    <div class="dist-code">
+      Código de distribuidor<br><b>473112</b>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <section>
+    <div class="section-head">
+      <h2>Alertas</h2>
+      <span class="note">Seguimiento de incumplimiento</span>
+    </div>
+    <div class="alert-grid">
+      <div class="panel alert-panel">
+        <h3>No completaron el último mes</h3>
+        <div class="alert-sub">Vendedores con cursos pendientes en el mes más reciente cargado</div>
+        <div id="alertIncompletos"></div>
+      </div>
+      <div class="panel alert-panel">
+        <h3>Peor puntaje acumulado</h3>
+        <div class="alert-sub">% completado acumulado sobre todos los meses cargados</div>
+        <div id="alertRanking"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Evolución mensual</h2>
+      <span class="note">% de cursos completados sobre el total asignado en el mes</span>
+    </div>
+    <div class="panel">
+      <div class="chart-controls">
+        <div class="toggle-group">
+          <button class="toggle-btn active" id="chartModeSup">Por supervisor</button>
+          <button class="toggle-btn" id="chartModeVend">Por vendedor</button>
+        </div>
+        <div class="chart-sup-select" id="chartSupSelectWrap" style="display:none;">
+          Supervisor:
+          <select id="chartSupSelect"></select>
+        </div>
+      </div>
+      <div class="chart-box"><canvas id="trendChart"></canvas></div>
+      <div class="threshold-legend">
+        <span><i style="background:var(--ok)"></i> 100% — completo</span>
+        <span><i style="background:var(--warn)"></i> 80–99%</span>
+        <span><i style="background:var(--bad)"></i> &lt;80%</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Por supervisor y vendedor</h2>
+      <span class="note">Tocá un supervisor para ver su equipo</span>
+    </div>
+    <div class="panel" style="padding:8px 22px 20px;">
+      <table id="mainTable">
+        <thead><tr id="tableHead"></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Detalle por curso</h2>
+      <span class="note">Estado y avance de cada asignación — filtrable</span>
+    </div>
+    <div class="panel">
+      <div class="filter-row">
+        <label>Mes
+          <select id="fMes"></select>
+        </label>
+        <label>Supervisor
+          <select id="fSup"><option value="">Todos</option></select>
+        </label>
+        <label>Vendedor
+          <select id="fVend"><option value="">Todos</option></select>
+        </label>
+        <label>Estado
+          <select id="fEstado">
+            <option value="">Todos</option>
+            <option value="Completado">Completado</option>
+            <option value="En progreso">En progreso</option>
+            <option value="No comenzó">No comenzó</option>
+          </select>
+        </label>
+        <label class="search-label">Buscar
+          <input type="text" id="fSearch" placeholder="nombre o curso…">
+        </label>
+      </div>
+      <div class="detail-count" id="detailCount"></div>
+      <div class="detail-scroll">
+        <table id="detailTable">
+          <thead>
+            <tr>
+              <th>Vendedor</th><th>Supervisor</th><th>Rol</th><th>Curso</th>
+              <th class="num">Avance</th><th class="num">Estado</th>
+              <th>Inscripción</th><th>Entrega</th>
+            </tr>
+          </thead>
+          <tbody id="detailBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Base de personal comercial</h2>
+      <span class="note">Quién es el supervisor de cada vendedor hoy</span>
+    </div>
+    <div class="panel">
+      <p style="margin-top:0;color:var(--ink-soft);font-size:14px;line-height:1.6;">
+        Acá se carga el archivo de personal (el mismo formato que "DetallePersonal", con columnas
+        <b>Descripción</b>, <b>Superior</b> y <b>Cargo</b>). Es la base que define a qué supervisor
+        reporta cada vendedor — se usa para asignar supervisor por nombre en todos los meses de BEES Academy,
+        pasados y futuros. Subila de nuevo cada vez que cambie un vendedor de supervisor.
+      </p>
+      <div class="upload-panel">
+        <label class="upload-btn" for="rosterFileInput">Elegir base de personal</label>
+        <input type="file" id="rosterFileInput" accept=".xlsx,.xls,.csv">
+        <div class="upload-status" id="rosterStatus">Usando la base cargada por última vez.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Cargar un nuevo mes</h2>
+      <span class="note">Autoactualizable — sin servidor</span>
+    </div>
+    <div class="panel">
+      <p style="margin-top:0;color:var(--ink-soft);font-size:14px;line-height:1.6;">
+        Subí el export de BEES Academy tal cual lo bajás ("Total Operación"), en .xlsx, .xls o .csv. El dashboard
+        cruza cada persona por su <b>Nombre</b> contra la base de personal comercial de arriba para asignarle el
+        supervisor correcto, y recalcula todo — no hace falta prepararlo antes. Si aparece alguien nuevo que no
+        está en esa base, te avisa para que lo revises.
+      </p>
+      <div class="upload-panel">
+        <label class="upload-btn" for="fileInput">Elegir archivo del mes</label>
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+        <div class="upload-status" id="uploadStatus">Ningún archivo cargado todavía.</div>
+        <div>
+          <button class="download-btn" id="downloadBtn" disabled>Descargar dashboard actualizado (.html)</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>Panel generado para uso interno de Logística Total SRL · datos BEES Academy, AB InBev</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const DETAIL_DATA = {"rows":[["2026-01",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Conoce Club B","Completado",100.0,"02/01/2026 21:58","16/01/2026 10:40"],["2026-01",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"10/01/2026 17:17","12/01/2026 14:37"],["2026-01",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","ENERO 26 - GAME PLAN GT","Completado",100.0,"19/01/2026 20:07","20/01/2026 11:13"],["2026-01",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Conoce Club B","Completado",100.0,"02/01/2026 21:58","07/01/2026 13:34"],["2026-01",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"10/01/2026 17:17","12/01/2026 14:19"],["2026-01",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","ENERO 26 - GAME PLAN GT","Completado",100.0,"19/01/2026 20:07","20/01/2026 10:16"],["2026-01",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Conoce Club B","Completado",100.0,"02/01/2026 21:58","07/01/2026 13:59"],["2026-01",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"10/01/2026 17:17","12/01/2026 15:03"],["2026-01",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","ENERO 26 - GAME PLAN GT","Completado",100.0,"19/01/2026 20:07","23/02/2026 05:06"],["2026-01",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Conoce Club B","Completado",100.0,"02/01/2026 21:58","07/01/2026 13:25"],["2026-01",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"14/01/2026 14:04","14/01/2026 14:18"],["2026-01",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Conoce Club B","Completado",100.0,"02/01/2026 21:58","20/01/2026 12:01"],["2026-01",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"10/01/2026 17:17","20/01/2026 11:59"],["2026-01",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","ENERO 26 - GAME PLAN GT","Completado",100.0,"19/01/2026 20:07","20/01/2026 12:04"],["2026-01",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Conoce Club B","Completado",100.0,"02/01/2026 21:58","07/01/2026 13:50"],["2026-01",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"10/01/2026 17:17","16/01/2026 10:42"],["2026-01",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","ENERO 26 - GAME PLAN GT","Completado",100.0,"19/01/2026 20:07","20/01/2026 11:13"],["2026-01",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Conoce Club B","Completado",100.0,"02/01/2026 21:58","16/01/2026 11:04"],["2026-01",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"10/01/2026 17:17","16/01/2026 11:01"],["2026-01",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","ENERO 26 - GAME PLAN GT","Completado",100.0,"19/01/2026 20:07","20/01/2026 11:14"],["2026-01",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Conoce Club B","En progreso",83.33,"02/01/2026 21:58",""],["2026-01",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"10/01/2026 17:17","14/01/2026 13:55"],["2026-01",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","ENERO 26 - GAME PLAN GT","Completado",100.0,"19/01/2026 20:07","18/05/2026 10:02"],["2026-01",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Conoce Club B","Completado",100.0,"02/01/2026 21:58","16/01/2026 11:06"],["2026-01",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"10/01/2026 17:17","13/05/2026 11:13"],["2026-01",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","ENERO 26 - GAME PLAN GT","Completado",100.0,"19/01/2026 20:07","26/02/2026 11:11"],["2026-01",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Conoce Club B","Completado",100.0,"02/01/2026 21:58","29/05/2026 11:15"],["2026-01",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"10/01/2026 17:17","31/03/2026 15:31"],["2026-01",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","ENERO 26 - GAME PLAN GT","En progreso",50.0,"19/01/2026 20:07",""],["2026-01",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Conoce Club B","Completado",100.0,"02/01/2026 22:00","07/01/2026 20:39"],["2026-01",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"10/01/2026 17:19","31/03/2026 15:33"],["2026-01",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","ENERO 26 - GAME PLAN GT","Completado",100.0,"19/01/2026 19:59","16/04/2026 23:26"],["2026-01",42849987,"MAURO MORA","CORSINO PEDRO","BDR","Conoce Club B","Completado",100.0,"02/01/2026 22:00","22/05/2026 11:17"],["2026-01",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Conoce Club B","Completado",100.0,"02/01/2026 22:00","31/03/2026 18:29"],["2026-01",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"10/01/2026 17:19","11/03/2026 22:34"],["2026-01",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","ENERO 26 - GAME PLAN GT","Completado",100.0,"19/01/2026 19:59","31/03/2026 17:55"],["2026-01",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Conoce Club B","Completado",100.0,"02/01/2026 21:41","11/08/2026 11:10"],["2026-01",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"10/01/2026 17:19","15/05/2026 01:10"],["2026-01",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","ENERO 26 - GAME PLAN GT","Completado",100.0,"19/01/2026 19:59","26/02/2026 11:09"],["2026-01",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Conoce Club B","Completado",100.0,"02/01/2026 22:00","20/01/2026 11:17"],["2026-01",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"10/01/2026 17:19","20/01/2026 11:20"],["2026-01",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","ENERO 26 - GAME PLAN GT","Completado",100.0,"19/01/2026 19:59","20/01/2026 11:13"],["2026-01",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Conoce Club B","Completado",100.0,"02/01/2026 22:00","27/01/2026 19:25"],["2026-01",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"10/01/2026 17:19","27/01/2026 19:34"],["2026-01",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","ENERO 26 - GAME PLAN GT","Completado",100.0,"19/01/2026 19:59","27/01/2026 19:36"],["2026-01",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Conoce Club B","Completado",100.0,"02/01/2026 22:00","07/01/2026 13:53"],["2026-01",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"10/01/2026 17:19","26/01/2026 15:34"],["2026-01",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","ENERO 26 - GAME PLAN GT","Completado",100.0,"19/01/2026 20:00","26/01/2026 15:28"],["2026-01",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","Bees Force: Conoce la info de tus clientes que podés ver en la app","Completado",100.0,"10/01/2026 17:19","26/02/2026 11:16"],["2026-01",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","ENERO 26 - GAME PLAN GT","En progreso",25.0,"19/01/2026 20:00",""],["2026-01",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","ENERO 26 - GAME PLAN GT","No comenzó",0.0,"19/01/2026 20:00",""],["2026-03",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Mod.1 - Comunicación y Negociación - BDR","Completado",100.0,"02/03/2026 15:22","03/03/2026 10:45"],["2026-03",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Nueva Versión 6.7.2 Bees Force - Distris","Completado",100.0,"09/03/2026 17:37","10/03/2026 10:33"],["2026-03",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Mod.1 - Comunicación y Negociación - BDR","Completado",100.0,"02/03/2026 15:22","03/03/2026 10:13"],["2026-03",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Nueva Versión 6.7.2 Bees Force - Distris","Completado",100.0,"09/03/2026 17:37","09/03/2026 18:05"],["2026-03",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Mod.1 - Comunicación y Negociación - BDR","Completado",100.0,"02/03/2026 15:22","13/03/2026 10:51"],["2026-03",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Nueva Versión 6.7.2 Bees Force - Distris","Completado",100.0,"09/03/2026 17:37","13/03/2026 10:52"],["2026-03",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Mod.1 - Habilidades interpersonales - ACT & REF","Completado",100.0,"02/03/2026 17:34","09/03/2026 18:11"],["2026-03",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Nueva Versión 6.7.2 Bees Force - Distris","Completado",100.0,"09/03/2026 17:37","09/03/2026 18:14"],["2026-03",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Mod.1 - Comunicación y Negociación - BDR","En progreso",0.0,"02/03/2026 15:22",""],["2026-03",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Nueva Versión 6.7.2 Bees Force - Distris","No comenzó",0.0,"09/03/2026 17:37",""],["2026-03",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Mod.1 - Comunicación y Negociación - BDR","Completado",100.0,"02/03/2026 15:22","10/03/2026 10:34"],["2026-03",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Nueva Versión 6.7.2 Bees Force - Distris","En progreso",66.67,"09/03/2026 17:37",""],["2026-03",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Mod.1 - Comunicación y Negociación - BDR","Completado",100.0,"02/03/2026 15:22","31/03/2026 19:34"],["2026-03",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Nueva Versión 6.7.2 Bees Force - Distris","No comenzó",0.0,"09/03/2026 17:37",""],["2026-03",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Mod.1 - Comunicación y Negociación - BDR","Completado",100.0,"02/03/2026 15:22","03/03/2026 10:13"],["2026-03",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Nueva Versión 6.7.2 Bees Force - Distris","Completado",100.0,"09/03/2026 17:37","31/03/2026 15:54"],["2026-03",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Mod.1 - Comunicación y Negociación - BDR","Completado",100.0,"02/03/2026 15:22","04/03/2026 10:03"],["2026-03",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Nueva Versión 6.7.2 Bees Force - Distris","No comenzó",0.0,"09/03/2026 17:37",""],["2026-03",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Mod.1 - Comunicación y Negociación - BDR","Completado",100.0,"02/03/2026 15:22","31/03/2026 15:35"],["2026-03",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Nueva Versión 6.7.2 Bees Force - Distris","Completado",100.0,"09/03/2026 17:37","31/03/2026 15:33"],["2026-03",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Mod.1 - Comunicación y Negociación - BDR","No comenzó",0.0,"02/03/2026 15:26",""],["2026-03",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Nueva Versión 6.7.2 Bees Force - Distris","No comenzó",0.0,"09/03/2026 17:43",""],["2026-03",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Mod.1 - Comunicación y Negociación - BDR","Completado",100.0,"02/03/2026 15:26","31/03/2026 18:07"],["2026-03",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Nueva Versión 6.7.2 Bees Force - Distris","Completado",100.0,"09/03/2026 17:43","31/03/2026 18:15"],["2026-03",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Mod.1 - Organización y planificación - Merchand","No comenzó",0.0,"02/03/2026 18:32",""],["2026-03",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Nueva Versión 6.7.2 Bees Force - Distris","No comenzó",0.0,"09/03/2026 17:43",""],["2026-03",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Mod.1 - Organización y planificación - Merchand","Completado",100.0,"02/03/2026 18:32","31/03/2026 16:58"],["2026-03",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Nueva Versión 6.7.2 Bees Force - Distris","Completado",100.0,"09/03/2026 17:43","31/03/2026 16:52"],["2026-03",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Mod.1 - Organización y planificación - Merchand","Completado",100.0,"02/03/2026 18:32","03/03/2026 10:57"],["2026-03",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Nueva Versión 6.7.2 Bees Force - Distris","Completado",100.0,"09/03/2026 17:43","10/03/2026 10:33"],["2026-03",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Mod.1 - Comunicación y Negociación - BDR","Completado",100.0,"02/03/2026 15:27","31/03/2026 15:29"],["2026-03",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Nueva Versión 6.7.2 Bees Force - Distris","Completado",100.0,"09/03/2026 17:44","31/03/2026 15:34"],["2026-03",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","Mod.1 - Comunicación y Negociación - BDR","Completado",100.0,"02/03/2026 15:27","03/03/2026 10:37"],["2026-03",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","Nueva Versión 6.7.2 Bees Force - Distris","Completado",100.0,"09/03/2026 17:44","13/03/2026 10:47"],["2026-03",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","Mod.1 - Organización y planificación - Merchand","No comenzó",0.0,"02/03/2026 18:32",""],["2026-03",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","Nueva Versión 6.7.2 Bees Force - Distris","No comenzó",0.0,"09/03/2026 17:44",""],["2026-04",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","POC Idealmente Ejecutado [AR]","Completado",100.0,"06/04/2026 17:07","22/04/2026 13:03"],["2026-04",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Tareas de EDUCACIÓN DIGITAL [AR]","Completado",100.0,"06/04/2026 20:13","22/04/2026 13:02"],["2026-04",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","GAME PLAN - ABRIL","Completado",100.0,"07/04/2026 17:16","22/04/2026 12:59"],["2026-04",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","POC Idealmente Ejecutado [AR]","Completado",100.0,"06/04/2026 17:07","13/04/2026 14:41"],["2026-04",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Tareas de EDUCACIÓN DIGITAL [AR]","Completado",100.0,"06/04/2026 20:13","13/04/2026 10:21"],["2026-04",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","GAME PLAN - ABRIL","Completado",100.0,"07/04/2026 17:16","13/04/2026 10:14"],["2026-04",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","POC Idealmente Ejecutado [AR]","Completado",100.0,"06/04/2026 17:07","16/04/2026 00:35"],["2026-04",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Tareas de EDUCACIÓN DIGITAL [AR]","Completado",100.0,"06/04/2026 20:13","15/04/2026 14:45"],["2026-04",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","GAME PLAN - ABRIL","Completado",100.0,"07/04/2026 17:16","15/04/2026 14:43"],["2026-04",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Tareas de EDUCACIÓN DIGITAL [AR]","Completado",100.0,"06/04/2026 20:13","13/04/2026 10:25"],["2026-04",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","POC Idealmente Ejecutado [AR]","No comenzó",0.0,"06/04/2026 17:07",""],["2026-04",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Tareas de EDUCACIÓN DIGITAL [AR]","Completado",100.0,"06/04/2026 20:13","13/04/2026 10:37"],["2026-04",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","GAME PLAN - ABRIL","Completado",100.0,"07/04/2026 17:16","13/04/2026 10:34"],["2026-04",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","POC Idealmente Ejecutado [AR]","Completado",100.0,"06/04/2026 17:07","15/04/2026 14:14"],["2026-04",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Tareas de EDUCACIÓN DIGITAL [AR]","Completado",100.0,"06/04/2026 20:13","15/04/2026 14:17"],["2026-04",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","GAME PLAN - ABRIL","Completado",100.0,"07/04/2026 17:16","15/04/2026 14:18"],["2026-04",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","POC Idealmente Ejecutado [AR]","Completado",100.0,"06/04/2026 17:07","15/04/2026 20:49"],["2026-04",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Tareas de EDUCACIÓN DIGITAL [AR]","Completado",100.0,"06/04/2026 20:14","15/04/2026 20:55"],["2026-04",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","GAME PLAN - ABRIL","Completado",100.0,"07/04/2026 17:16","15/04/2026 20:44"],["2026-04",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","POC Idealmente Ejecutado [AR]","En progreso",75.0,"06/04/2026 17:07",""],["2026-04",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Tareas de EDUCACIÓN DIGITAL [AR]","Completado",100.0,"06/04/2026 20:14","13/04/2026 10:21"],["2026-04",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","GAME PLAN - ABRIL","Completado",100.0,"07/04/2026 17:16","13/04/2026 10:14"],["2026-04",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","POC Idealmente Ejecutado [AR]","Completado",100.0,"06/04/2026 17:07","15/04/2026 14:13"],["2026-04",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Tareas de EDUCACIÓN DIGITAL [AR]","Completado",100.0,"06/04/2026 20:14","13/04/2026 11:17"],["2026-04",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","GAME PLAN - ABRIL","Completado",100.0,"07/04/2026 17:16","13/04/2026 11:16"],["2026-04",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","POC Idealmente Ejecutado [AR]","Completado",100.0,"06/04/2026 17:07","15/04/2026 14:31"],["2026-04",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Tareas de EDUCACIÓN DIGITAL [AR]","Completado",100.0,"06/04/2026 20:14","15/04/2026 14:33"],["2026-04",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","GAME PLAN - ABRIL","Completado",100.0,"07/04/2026 17:17","15/04/2026 14:29"],["2026-04",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","POC Idealmente Ejecutado [AR]","Completado",100.0,"06/04/2026 17:14","16/04/2026 23:31"],["2026-04",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Tareas de EDUCACIÓN DIGITAL [AR]","Completado",100.0,"06/04/2026 20:20","22/04/2026 13:05"],["2026-04",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","GAME PLAN - ABRIL","Completado",100.0,"07/04/2026 17:23","16/04/2026 23:20"],["2026-04",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","POC Idealmente Ejecutado [AR]","Completado",100.0,"06/04/2026 17:14","15/04/2026 19:22"],["2026-04",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Tareas de EDUCACIÓN DIGITAL [AR]","Completado",100.0,"06/04/2026 20:21","15/04/2026 19:32"],["2026-04",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","GAME PLAN - ABRIL","Completado",100.0,"07/04/2026 17:23","15/04/2026 19:17"],["2026-04",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","POC Idealmente Ejecutado [AR]","No comenzó",0.0,"06/04/2026 17:14",""],["2026-04",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Tareas de EDUCACIÓN DIGITAL [AR]","No comenzó",0.0,"06/04/2026 20:21",""],["2026-04",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","GAME PLAN - ABRIL","No comenzó",0.0,"07/04/2026 17:23",""],["2026-04",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","POC Idealmente Ejecutado [AR]","Completado",100.0,"06/04/2026 17:14","17/04/2026 00:19"],["2026-04",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Tareas de EDUCACIÓN DIGITAL [AR]","Completado",100.0,"06/04/2026 20:21","17/04/2026 00:23"],["2026-04",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","GAME PLAN - ABRIL","Completado",100.0,"07/04/2026 17:23","17/04/2026 00:15"],["2026-04",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","POC Idealmente Ejecutado [AR]","Completado",100.0,"06/04/2026 17:14","15/04/2026 19:34"],["2026-04",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Tareas de EDUCACIÓN DIGITAL [AR]","Completado",100.0,"06/04/2026 20:21","15/04/2026 19:40"],["2026-04",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","GAME PLAN - ABRIL","Completado",100.0,"07/04/2026 17:23","12/04/2026 19:25"],["2026-04",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","POC Idealmente Ejecutado [AR]","Completado",100.0,"06/04/2026 17:14","22/04/2026 13:50"],["2026-04",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Tareas de EDUCACIÓN DIGITAL [AR]","Completado",100.0,"06/04/2026 20:21","22/04/2026 13:52"],["2026-04",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","GAME PLAN - ABRIL","Completado",100.0,"07/04/2026 17:24","22/04/2026 13:47"],["2026-04",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","POC Idealmente Ejecutado [AR]","Completado",100.0,"06/04/2026 17:14","13/04/2026 10:45"],["2026-04",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","Tareas de EDUCACIÓN DIGITAL [AR]","Completado",100.0,"06/04/2026 20:21","13/04/2026 10:56"],["2026-04",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","GAME PLAN - ABRIL","Completado",100.0,"07/04/2026 17:24","13/04/2026 10:38"],["2026-04",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","POC Idealmente Ejecutado [AR]","No comenzó",0.0,"06/04/2026 17:14",""],["2026-04",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","Tareas de EDUCACIÓN DIGITAL [AR]","No comenzó",0.0,"06/04/2026 20:21",""],["2026-04",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","GAME PLAN - ABRIL","No comenzó",0.0,"07/04/2026 17:24",""],["2026-05",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:48","13/05/2026 10:55"],["2026-05",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:12","13/05/2026 10:56"],["2026-05",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:01","13/05/2026 10:59"],["2026-05",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:48","13/05/2026 11:00"],["2026-05",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:12","13/05/2026 10:57"],["2026-05",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:01","13/05/2026 10:54"],["2026-05",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:48","13/05/2026 11:12"],["2026-05",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:12","13/05/2026 11:13"],["2026-05",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:01","13/05/2026 11:14"],["2026-05",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:48","13/05/2026 11:12"],["2026-05",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:12","13/05/2026 11:10"],["2026-05",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:01","13/05/2026 11:08"],["2026-05",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:48","13/05/2026 12:03"],["2026-05",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:12","13/05/2026 12:05"],["2026-05",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:01","13/05/2026 12:04"],["2026-05",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:48","13/05/2026 10:47"],["2026-05",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:12","13/05/2026 10:48"],["2026-05",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:01","13/05/2026 10:52"],["2026-05",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:48","13/05/2026 11:04"],["2026-05",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:12","13/05/2026 11:03"],["2026-05",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:01","13/05/2026 11:04"],["2026-05",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:48","18/05/2026 10:03"],["2026-05",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:12","18/05/2026 09:58"],["2026-05",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:01","18/05/2026 09:58"],["2026-05",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:48","13/05/2026 11:11"],["2026-05",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:12","13/05/2026 11:11"],["2026-05",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:01","13/05/2026 11:12"],["2026-05",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:48","13/05/2026 11:05"],["2026-05",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:12","13/05/2026 11:03"],["2026-05",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:01","13/05/2026 11:07"],["2026-05",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:55","21/05/2026 19:11"],["2026-05",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:19","21/05/2026 19:19"],["2026-05",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:09","21/05/2026 19:25"],["2026-05",42849987,"MAURO MORA","CORSINO PEDRO","BDR","GAME PLAN - MAYO","Completado",100.0,"13/05/2026 13:19","22/05/2026 10:36"],["2026-05",42849987,"MAURO MORA","CORSINO PEDRO","BDR","Estrategia de Tareas","Completado",100.0,"13/05/2026 13:19","22/05/2026 10:37"],["2026-05",42849987,"MAURO MORA","CORSINO PEDRO","BDR","Conoce Club B Black [AR]","Completado",100.0,"13/05/2026 13:19","22/05/2026 10:55"],["2026-05",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:55","13/05/2026 23:06"],["2026-05",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:19","13/05/2026 23:01"],["2026-05",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:09","13/05/2026 23:06"],["2026-05",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:55","15/05/2026 01:17"],["2026-05",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:19","15/05/2026 01:14"],["2026-05",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:09","15/05/2026 01:19"],["2026-05",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:55","13/05/2026 11:22"],["2026-05",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:19","13/05/2026 11:23"],["2026-05",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:09","13/05/2026 11:26"],["2026-05",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:55","13/05/2026 11:06"],["2026-05",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:19","13/05/2026 11:03"],["2026-05",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:09","13/05/2026 11:02"],["2026-05",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:56","13/05/2026 11:21"],["2026-05",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:19","13/05/2026 11:21"],["2026-05",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:09","13/05/2026 11:22"],["2026-05",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","GAME PLAN - MAYO","No comenzó",0.0,"11/05/2026 17:56",""],["2026-05",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","Estrategia de Tareas","No comenzó",0.0,"11/05/2026 18:20",""],["2026-05",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","Conoce Club B Black [AR]","No comenzó",0.0,"11/05/2026 18:09",""],["2026-05",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","GAME PLAN - MAYO","Completado",100.0,"11/05/2026 17:56","27/05/2026 21:55"],["2026-05",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","Estrategia de Tareas","Completado",100.0,"11/05/2026 18:20","27/05/2026 22:04"],["2026-05",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","Conoce Club B Black [AR]","Completado",100.0,"11/05/2026 18:09","27/05/2026 21:39"],["2026-06",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","17/06/2026 10:32"],["2026-06",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:32","17/06/2026 10:28"],["2026-06",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:53","17/06/2026 10:32"],["2026-06",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Ruta Efectiva [AR]","Completado",100.0,"17/06/2026 20:15","24/06/2026 19:05"],["2026-06",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:40"],["2026-06",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:32","10/06/2026 11:42"],["2026-06",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:53","10/06/2026 11:44"],["2026-06",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:34"],["2026-06",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:32","10/06/2026 11:37"],["2026-06",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:53","10/06/2026 11:36"],["2026-06",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","18/06/2026 10:57"],["2026-06",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:32","18/06/2026 11:04"],["2026-06",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:53","18/06/2026 12:51"],["2026-06",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Ruta Efectiva [AR]","Completado",100.0,"17/06/2026 20:15","22/06/2026 13:06"],["2026-06",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","18/06/2026 10:36"],["2026-06",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:32","18/06/2026 10:41"],["2026-06",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:53","18/06/2026 10:44"],["2026-06",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:34"],["2026-06",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:32","10/06/2026 11:30"],["2026-06",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:53","10/06/2026 11:31"],["2026-06",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:43"],["2026-06",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:32","10/06/2026 11:45"],["2026-06",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:53","10/06/2026 11:42"],["2026-06",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","19/06/2026 09:59"],["2026-06",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:32","19/06/2026 10:03"],["2026-06",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:53","24/06/2026 20:09"],["2026-06",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Ruta Efectiva [AR]","Completado",100.0,"17/06/2026 20:16","24/06/2026 19:37"],["2026-06",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:30"],["2026-06",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:32","10/06/2026 11:32"],["2026-06",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:53","10/06/2026 11:36"],["2026-06",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Ruta Efectiva [AR]","Completado",100.0,"17/06/2026 20:14","24/06/2026 11:21"],["2026-06",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:33"],["2026-06",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:32","10/06/2026 11:34"],["2026-06",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:53","10/06/2026 11:36"],["2026-06",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Ruta Efectiva [AR]","Completado",100.0,"17/06/2026 20:16","25/06/2026 18:27"],["2026-06",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","26/06/2026 13:55"],["2026-06",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:38","25/06/2026 11:12"],["2026-06",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:59","25/06/2026 11:19"],["2026-06",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Ruta Efectiva [AR]","Completado",100.0,"17/06/2026 20:12","25/06/2026 11:25"],["2026-06",42849987,"MAURO MORA","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","10/06/2026 11:38"],["2026-06",42849987,"MAURO MORA","CORSINO PEDRO","BDR","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:38","10/06/2026 11:37"],["2026-06",42849987,"MAURO MORA","CORSINO PEDRO","BDR","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:59","24/06/2026 18:46"],["2026-06",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","24/06/2026 18:54"],["2026-06",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:38","24/06/2026 18:51"],["2026-06",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:59","24/06/2026 18:58"],["2026-06",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","17/06/2026 10:24"],["2026-06",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:38","17/06/2026 10:29"],["2026-06",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:59","17/06/2026 10:31"],["2026-06",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","24/06/2026 19:26"],["2026-06",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:38","24/06/2026 19:23"],["2026-06",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:59","24/06/2026 19:16"],["2026-06",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","17/06/2026 10:26"],["2026-06",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:38","17/06/2026 10:32"],["2026-06",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:59","17/06/2026 10:37"],["2026-06",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","18/06/2026 10:58"],["2026-06",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:38","18/06/2026 11:04"],["2026-06",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Reglas del Club B Black","Completado",100.0,"05/06/2026 11:59","18/06/2026 13:22"],["2026-06",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Ruta Efectiva [AR]","Completado",100.0,"17/06/2026 20:17","22/06/2026 13:06"],["2026-06",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","GAME PLAN - JUNIO","Completado",100.0,"08/06/2026 11:41","26/06/2026 14:25"],["2026-06",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","Reglas del Club B Black","Completado",100.0,"08/06/2026 11:41","26/06/2026 14:27"],["2026-06",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","25/06/2026 02:13"],["2026-06",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","GAME PLAN - JUNIO","Completado",100.0,"05/06/2026 11:39","25/06/2026 02:16"],["2026-06",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","Reglas del Club B Black","Completado",100.0,"05/06/2026 12:00","25/06/2026 02:18"],["2026-06",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","17/06/2026 10:32"],["2026-06",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:40"],["2026-06",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:34"],["2026-06",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","18/06/2026 10:57"],["2026-06",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","18/06/2026 10:36"],["2026-06",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:34"],["2026-06",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:43"],["2026-06",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","19/06/2026 09:59"],["2026-06",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:30"],["2026-06",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:33"],["2026-06",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","26/06/2026 13:55"],["2026-06",42849987,"MAURO MORA","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","10/06/2026 11:38"],["2026-06",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","24/06/2026 18:54"],["2026-06",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","17/06/2026 10:24"],["2026-06",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","24/06/2026 19:26"],["2026-06",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","17/06/2026 10:26"],["2026-06",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","18/06/2026 10:58"],["2026-06",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","25/06/2026 02:13"],["2026-06",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","17/06/2026 10:32"],["2026-06",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:40"],["2026-06",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:34"],["2026-06",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","18/06/2026 10:57"],["2026-06",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","18/06/2026 10:36"],["2026-06",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:34"],["2026-06",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:43"],["2026-06",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","19/06/2026 09:59"],["2026-06",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:30"],["2026-06",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:33"],["2026-06",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","26/06/2026 13:55"],["2026-06",42849987,"MAURO MORA","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","10/06/2026 11:38"],["2026-06",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","24/06/2026 18:54"],["2026-06",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","17/06/2026 10:24"],["2026-06",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","24/06/2026 19:26"],["2026-06",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","17/06/2026 10:26"],["2026-06",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","18/06/2026 10:58"],["2026-06",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","25/06/2026 02:13"],["2026-07",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","13/07/2026 10:54"],["2026-07",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:24","13/07/2026 10:51"],["2026-07",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:04","13/07/2026 10:53"],["2026-07",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","10/07/2026 18:07"],["2026-07",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:24","10/07/2026 18:01"],["2026-07",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:04","10/07/2026 18:03"],["2026-07",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","23/07/2026 10:37"],["2026-07",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:24","23/07/2026 10:38"],["2026-07",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:04","23/07/2026 10:41"],["2026-07",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","10/07/2026 18:18"],["2026-07",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:24","10/07/2026 18:17"],["2026-07",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:04","10/07/2026 18:16"],["2026-07",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","22/07/2026 19:41"],["2026-07",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:24","22/07/2026 19:42"],["2026-07",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:04","22/07/2026 19:43"],["2026-07",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","10/07/2026 18:18"],["2026-07",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:24","10/07/2026 18:21"],["2026-07",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:04","10/07/2026 18:19"],["2026-07",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","23/07/2026 11:16"],["2026-07",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:24","23/07/2026 11:17"],["2026-07",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:04","23/07/2026 11:18"],["2026-07",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","13/07/2026 10:07"],["2026-07",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:24","13/07/2026 10:10"],["2026-07",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:04","13/07/2026 10:09"],["2026-07",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","11/07/2026 12:22"],["2026-07",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:24","11/07/2026 12:21"],["2026-07",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:04","11/07/2026 12:22"],["2026-07",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","23/07/2026 12:03"],["2026-07",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:24","23/07/2026 11:14"],["2026-07",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:04","23/07/2026 11:17"],["2026-07",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","13/07/2026 12:37"],["2026-07",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:30","13/07/2026 12:35"],["2026-07",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:10","13/07/2026 12:35"],["2026-07",42849987,"MAURO MORA","CORSINO PEDRO","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","14/07/2026 10:21"],["2026-07",42849987,"MAURO MORA","CORSINO PEDRO","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:30","14/07/2026 10:22"],["2026-07",42849987,"MAURO MORA","CORSINO PEDRO","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:10","14/07/2026 10:22"],["2026-07",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","10/07/2026 22:41"],["2026-07",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:30","10/07/2026 22:39"],["2026-07",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:10","10/07/2026 22:32"],["2026-07",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","21/07/2026 10:33"],["2026-07",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:30","21/07/2026 10:37"],["2026-07",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:10","21/07/2026 10:31"],["2026-07",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","14/07/2026 10:20"],["2026-07",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:30","14/07/2026 10:22"],["2026-07",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:10","14/07/2026 10:21"],["2026-07",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","11/07/2026 12:15"],["2026-07",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:30","11/07/2026 12:14"],["2026-07",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:10","11/07/2026 12:12"],["2026-07",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","23/07/2026 12:35"],["2026-07",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:30","23/07/2026 12:36"],["2026-07",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:10","23/07/2026 12:38"],["2026-07",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","23/07/2026 10:40"],["2026-07",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:30","23/07/2026 10:42"],["2026-07",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:10","23/07/2026 10:41"],["2026-07",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","BEES CAMPAÑA “JUEGO MUNDIAL 2026”","Completado",100.0,"01/07/2026 15:03","23/07/2026 02:09"],["2026-07",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","GAME PLAN - JULIO","Completado",100.0,"08/07/2026 22:30","23/07/2026 02:07"],["2026-07",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","Cómo Canjear Puntos en CLUB B [AR]","Completado",100.0,"08/07/2026 23:10","23/07/2026 02:08"],["2026-08",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:52","11/08/2026 10:36"],["2026-06",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","17/06/2026 10:32"],["2026-08",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 07:55","11/08/2026 10:39"],["2026-08",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Relevamiento FRIO 2026","Completado",100.0,"04/08/2026 23:54","11/08/2026 10:34"],["2026-08",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:52","06/08/2026 09:59"],["2026-06",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:40"],["2026-08",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 07:55","10/08/2026 09:56"],["2026-08",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Relevamiento FRIO 2026","Completado",100.0,"04/08/2026 23:54","05/08/2026 10:05"],["2026-08",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:52","06/08/2026 10:37"],["2026-06",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:34"],["2026-08",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 07:55","11/08/2026 10:40"],["2026-08",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Relevamiento FRIO 2026","Completado",100.0,"04/08/2026 23:54","06/08/2026 10:35"],["2026-08",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:52","06/08/2026 12:25"],["2026-06",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","18/06/2026 10:57"],["2026-08",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 07:55","14/08/2026 14:50"],["2026-08",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Relevamiento FRIO 2026","Completado",100.0,"04/08/2026 23:54","06/08/2026 12:24"],["2026-08",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:52","06/08/2026 11:22"],["2026-06",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","18/06/2026 10:36"],["2026-08",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 07:55","28/08/2026 10:31"],["2026-08",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Relevamiento FRIO 2026","Completado",100.0,"04/08/2026 23:54","06/08/2026 11:25"],["2026-08",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Relevamiento FRIO 2026","Completado",100.0,"04/08/2026 23:54","19/08/2026 12:10"],["2026-08",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 07:55","19/08/2026 12:06"],["2026-08",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:52","19/08/2026 12:05"],["2026-06",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:34"],["2026-08",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Relevamiento FRIO 2026","Completado",100.0,"04/08/2026 23:54","11/08/2026 11:00"],["2026-08",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 07:55","11/08/2026 11:13"],["2026-08",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:52","11/08/2026 11:00"],["2026-06",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:43"],["2026-08",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Relevamiento FRIO 2026","Completado",100.0,"04/08/2026 23:54","11/08/2026 10:06"],["2026-08",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 07:55","21/08/2026 20:59"],["2026-08",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:52","11/08/2026 09:58"],["2026-06",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","19/06/2026 09:59"],["2026-08",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Relevamiento FRIO 2026","Completado",100.0,"04/08/2026 23:54","11/08/2026 10:41"],["2026-08",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 07:55","11/08/2026 10:43"],["2026-08",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:52","11/08/2026 10:40"],["2026-06",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:30"],["2026-08",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Relevamiento FRIO 2026","Completado",100.0,"04/08/2026 23:54","10/08/2026 14:52"],["2026-08",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 07:55","10/08/2026 14:51"],["2026-08",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:52","10/08/2026 14:49"],["2026-06",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:41","10/06/2026 11:33"],["2026-06",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","26/06/2026 13:55"],["2026-08",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 08:02","12/08/2026 11:34"],["2026-08",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Relevamiento FRIO 2026","Completado",100.0,"05/08/2026 00:01","12/08/2026 11:34"],["2026-08",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:59","06/08/2026 11:27"],["2026-08",42849987,"MAURO MORA","CORSINO PEDRO","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:59","06/08/2026 10:39"],["2026-06",42849987,"MAURO MORA","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","10/06/2026 11:38"],["2026-08",42849987,"MAURO MORA","CORSINO PEDRO","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 08:02","19/08/2026 12:08"],["2026-08",42849987,"MAURO MORA","CORSINO PEDRO","BDR","Relevamiento FRIO 2026","Completado",100.0,"05/08/2026 00:02","06/08/2026 10:39"],["2026-08",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:59","06/08/2026 10:21"],["2026-06",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","24/06/2026 18:54"],["2026-08",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 08:02","14/08/2026 18:35"],["2026-08",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Relevamiento FRIO 2026","Completado",100.0,"05/08/2026 00:02","06/08/2026 10:09"],["2026-08",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:59","11/08/2026 11:05"],["2026-06",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","17/06/2026 10:24"],["2026-08",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 08:02","11/08/2026 11:08"],["2026-08",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Relevamiento FRIO 2026","Completado",100.0,"05/08/2026 00:02","19/08/2026 12:09"],["2026-08",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:59","10/08/2026 14:45"],["2026-06",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","24/06/2026 19:26"],["2026-08",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 08:02","25/08/2026 20:09"],["2026-08",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Relevamiento FRIO 2026","Completado",100.0,"05/08/2026 00:02","11/08/2026 10:37"],["2026-08",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:59","06/08/2026 10:37"],["2026-06",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","17/06/2026 10:26"],["2026-08",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 08:02","11/08/2026 11:14"],["2026-08",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Relevamiento FRIO 2026","Completado",100.0,"05/08/2026 00:02","06/08/2026 10:39"],["2026-08",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"04/08/2026 23:59","25/08/2026 18:06"],["2026-06",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","18/06/2026 10:58"],["2026-08",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 08:02","25/08/2026 18:15"],["2026-08",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Relevamiento FRIO 2026","Completado",100.0,"05/08/2026 00:02","25/08/2026 18:09"],["2026-08",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"05/08/2026 00:00","06/08/2026 11:14"],["2026-08",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 08:03","11/08/2026 10:40"],["2026-08",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","Relevamiento FRIO 2026","Completado",100.0,"05/08/2026 00:02","06/08/2026 11:20"],["2026-08",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","Relevamiento FRIO 2026","Completado",100.0,"05/08/2026 00:02","26/08/2026 00:39"],["2026-06",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","Agregar productos en Bees","Completado",100.0,"05/06/2026 11:42","25/06/2026 02:13"],["2026-08",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"05/08/2026 00:00","28/08/2026 12:32"],["2026-08",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","GAME PLAN - AGOSTO","Completado",100.0,"07/08/2026 08:03","28/08/2026 17:41"],["2026-08",42654151,"JUAN CARLOS VEGA","CORSINO PEDRO","BDR","Relevamiento FRIO 2026","Completado",100.0,"05/08/2026 18:14","11/08/2026 10:41"],["2026-08",42654151,"JUAN CARLOS VEGA","CORSINO PEDRO","BDR","CX - Anticiparnos para no fallarle al cliente","Completado",100.0,"05/08/2026 18:14","11/08/2026 10:38"],["2026-08",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"04/08/2026 23:53","11/08/2026 10:43"],["2026-08",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"04/08/2026 23:53","18/08/2026 10:03"],["2026-08",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"04/08/2026 23:53","21/08/2026 16:40"],["2026-08",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Mejores Prácticas Durante la Visita","Completado",100.0,"04/08/2026 23:53","21/08/2026 16:41"],["2026-08",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"04/08/2026 23:53","21/08/2026 16:41"],["2026-08",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"04/08/2026 23:53","19/08/2026 12:08"],["2026-08",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"04/08/2026 23:53","11/08/2026 11:06"],["2026-08",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"04/08/2026 23:53","11/08/2026 10:05"],["2026-08",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"04/08/2026 23:53","14/08/2026 14:47"],["2026-08",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"05/08/2026 00:01","12/08/2026 11:30"],["2026-08",42849987,"MAURO MORA","CORSINO PEDRO","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"05/08/2026 00:01","21/08/2026 17:29"],["2026-08",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"05/08/2026 00:01","21/08/2026 17:29"],["2026-08",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"05/08/2026 00:01","19/08/2026 12:07"],["2026-08",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"05/08/2026 00:01","10/08/2026 14:50"],["2026-08",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"05/08/2026 00:01","21/08/2026 17:29"],["2026-08",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"05/08/2026 00:02","21/08/2026 17:24"],["2026-08",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"04/08/2026 23:53","24/08/2026 14:21"],["2026-08",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Mejores Prácticas Durante la Visita","Completado",100.0,"05/08/2026 00:01","25/08/2026 18:09"],["2026-08",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","Mejores Prácticas Durante la Visita","Completado",100.0,"05/08/2026 00:02","28/08/2026 12:34"],["2026-09",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:37","09/09/2026 16:12"],["2026-09",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:32","09/09/2026 16:13"],["2026-09",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:39","09/09/2026 16:15"],["2026-09",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:37","11/09/2026 19:00"],["2026-09",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:32","11/09/2026 19:05"],["2026-09",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:39","11/09/2026 18:56"],["2026-09",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:37","21/09/2026 10:42"],["2026-09",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:32","21/09/2026 10:42"],["2026-09",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:39","21/09/2026 10:41"],["2026-09",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:37","16/09/2026 13:44"],["2026-09",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:32","16/09/2026 13:48"],["2026-09",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:39","16/09/2026 13:52"],["2026-09",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:37","11/09/2026 19:14"],["2026-09",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:32","11/09/2026 19:18"],["2026-09",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:39","11/09/2026 19:13"],["2026-09",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:37","10/09/2026 11:07"],["2026-09",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:32","10/09/2026 11:10"],["2026-09",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:39","10/09/2026 11:05"],["2026-09",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:37","25/09/2026 12:02"],["2026-09",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:32","25/09/2026 12:07"],["2026-09",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:39","25/09/2026 12:12"],["2026-09",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:37","29/09/2026 09:48"],["2026-09",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:32","29/09/2026 09:55"],["2026-09",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:39","29/09/2026 09:49"],["2026-09",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:39","09/09/2026 16:11"],["2026-09",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:37","09/09/2026 16:12"],["2026-09",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:32","09/09/2026 16:13"],["2026-09",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:39","17/09/2026 14:28"],["2026-09",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:37","17/09/2026 14:30"],["2026-09",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:32","17/09/2026 14:31"],["2026-09",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:39","11/09/2026 12:43"],["2026-09",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:44","11/09/2026 12:49"],["2026-09",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:45","11/09/2026 12:55"],["2026-09",42849987,"MAURO MORA","CORSINO PEDRO","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:39","21/09/2026 10:47"],["2026-09",42849987,"MAURO MORA","CORSINO PEDRO","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:44","21/09/2026 10:46"],["2026-09",42849987,"MAURO MORA","CORSINO PEDRO","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:45","21/09/2026 10:45"],["2026-09",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:45","21/09/2026 10:11"],["2026-09",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:39","21/09/2026 10:01"],["2026-09",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:44","21/09/2026 10:07"],["2026-09",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:45","11/09/2026 19:55"],["2026-09",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:39","11/09/2026 19:59"],["2026-09",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:44","11/09/2026 19:58"],["2026-09",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:45","21/09/2026 10:51"],["2026-09",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:44","21/09/2026 10:52"],["2026-09",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:39","21/09/2026 10:53"],["2026-09",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:45","12/09/2026 12:16"],["2026-09",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:44","12/09/2026 12:18"],["2026-09",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:39","12/09/2026 12:19"],["2026-09",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:39","16/09/2026 13:33"],["2026-09",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:46","16/09/2026 13:31"],["2026-09",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:45","16/09/2026 13:33"],["2026-09",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:45","21/09/2026 10:56"],["2026-09",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:40","21/09/2026 10:59"],["2026-09",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:46","21/09/2026 10:51"],["2026-09",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:45","18/09/2026 16:58"],["2026-09",42654151,"JUAN CARLOS VEGA","CORSINO PEDRO","BDR","Tareas EDUCACIÓN DIGITAL - Sección de Promociones — ¿Cómo validar mejor?","Completado",100.0,"09/09/2026 15:41","30/09/2026 12:56"],["2026-09",42654151,"JUAN CARLOS VEGA","CORSINO PEDRO","BDR","GAME PLAN - SEPTIEMBRE","Completado",100.0,"09/09/2026 15:46","30/09/2026 12:53"],["2026-09",42654151,"JUAN CARLOS VEGA","CORSINO PEDRO","BDR","BEES FORCE - VISUALIZACIÓN TAREAS CV","Completado",100.0,"09/09/2026 15:47","30/09/2026 12:54"],["2026-10",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:07","29/10/2026 13:19"],["2026-10",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:21","29/10/2026 13:17"],["2026-10",41911476,"ARIANA CHANTAL KEBERLEIN","MORENO FERNANDO","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:11","29/10/2026 13:14"],["2026-10",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:07","07/10/2026 10:17"],["2026-10",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:21","13/10/2026 10:15"],["2026-10",26143225,"CRISTIAN ARAVENA","MORENO FERNANDO","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:11","07/10/2026 10:00"],["2026-10",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:07","07/10/2026 10:48"],["2026-10",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:21","13/10/2026 10:42"],["2026-10",42710307,"DAMIAN MUNOZ","CORSINO PEDRO","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:11","07/10/2026 10:51"],["2026-10",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:11","07/10/2026 10:25"],["2026-10",33637089,"JONATHAN FIGUEROA","ANTUAL PAULA","ACTIVADOR ON","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:07","07/10/2026 10:28"],["2026-10",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:11","13/10/2026 10:57"],["2026-10",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:07","13/10/2026 11:01"],["2026-10",42449360,"LUCAS MELINAO","SECO ROBERTO ENRIQUE SV","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:21","13/10/2026 10:58"],["2026-10",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:11","07/10/2026 11:12"],["2026-10",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:07","07/10/2026 11:15"],["2026-10",41254458,"MATIAS MORA JARAMILLO","MORENO FERNANDO","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:21","19/10/2026 12:56"],["2026-10",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:11","13/10/2026 10:31"],["2026-10",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:07","13/10/2026 10:27"],["2026-10",27201588,"MAURO NUNEZ","MORENO FERNANDO","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:21","13/10/2026 10:32"],["2026-10",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:11","13/10/2026 11:05"],["2026-10",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:07","13/10/2026 10:28"],["2026-10",23494972,"GOMEZ RAUL","SECO ROBERTO ENRIQUE SV","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:21","13/10/2026 10:19"],["2026-10",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:21","13/10/2026 10:33"],["2026-10",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:11","06/10/2026 11:10"],["2026-10",44778792,"TOMAS ALTAMIRANO","CORSINO PEDRO","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:07","06/10/2026 11:14"],["2026-10",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:21","21/10/2026 13:08"],["2026-10",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:11","21/10/2026 13:05"],["2026-10",44802428,"JOAQUIN ALEJANDRO MARQUEZ","MORENO FERNANDO","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:07","29/10/2026 14:29"],["2026-10",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:14","09/10/2026 18:00"],["2026-10",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:18","09/10/2026 18:04"],["2026-10",32770301,"MILLAIN BETIANA","CORSINO PEDRO","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:27","09/10/2026 17:58"],["2026-10",42849987,"MAURO MORA","CORSINO PEDRO","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:14","28/10/2026 11:47"],["2026-10",42849987,"MAURO MORA","CORSINO PEDRO","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:18","28/10/2026 11:38"],["2026-10",42849987,"MAURO MORA","CORSINO PEDRO","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:27","28/10/2026 11:42"],["2026-10",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:18","09/10/2026 22:54"],["2026-10",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:27","13/10/2026 10:20"],["2026-10",31227755,"EUGENIA ACEVEDO","CORSINO PEDRO","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:14","09/10/2026 23:09"],["2026-10",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:18","13/10/2026 10:43"],["2026-10",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:27","13/10/2026 10:54"],["2026-10",34662546,"MAXIMILIANO MARTIRE","MORENO FERNANDO","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:14","13/10/2026 10:58"],["2026-10",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:18","28/10/2026 11:48"],["2026-10",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:27","28/10/2026 11:49"],["2026-10",39208968,"RODRIGO DURSO PAEZ","ANTUAL PAULA","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:14","28/10/2026 11:40"],["2026-10",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:14","13/10/2026 11:03"],["2026-10",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:18","13/10/2026 10:41"],["2026-10",96060120,"ORLANDO REYES","MORENO FERNANDO","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:27","13/10/2026 11:01"],["2026-10",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:14","28/10/2026 12:08"],["2026-10",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:18","28/10/2026 11:49"],["2026-10",41620169,"ABRIL LEON","ANTUAL PAULA","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:28","28/10/2026 12:01"],["2026-10",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:15","07/10/2026 10:31"],["2026-10",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:28","19/10/2026 10:22"],["2026-10",41148052,"LAUTARO SALINAS","CORSINO PEDRO","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:19","07/10/2026 10:26"],["2026-10",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:15","14/10/2026 10:17"],["2026-10",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:28","14/10/2026 10:06"],["2026-10",39130336,"JOAQUIN VALLEJOS","CORSINO PEDRO","MERCHAND","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:19","14/10/2026 10:13"],["2026-10",42654151,"JUAN CARLOS VEGA","CORSINO PEDRO","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:20","07/10/2026 11:32"],["2026-10",42654151,"JUAN CARLOS VEGA","CORSINO PEDRO","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:29","13/10/2026 12:36"],["2026-10",42654151,"JUAN CARLOS VEGA","CORSINO PEDRO","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:16","07/10/2026 11:33"],["2026-10",38204988,"JOSÉ MATÍAS VERGE","MORENO FERNANDO","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:20","21/10/2026 10:57"],["2026-10",38204988,"JOSÉ MATÍAS VERGE","MORENO FERNANDO","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:30","22/10/2026 21:30"],["2026-10",38204988,"JOSÉ MATÍAS VERGE","MORENO FERNANDO","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:16","22/10/2026 21:35"],["2026-10",36752813,"MARIA FLORENCIA SANTIAGO","CORSINO PEDRO","BDR","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:16","28/10/2026 11:45"],["2026-10",36752813,"MARIA FLORENCIA SANTIAGO","CORSINO PEDRO","BDR","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:20","30/10/2026 14:31"],["2026-10",36752813,"MARIA FLORENCIA SANTIAGO","CORSINO PEDRO","BDR","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:30","28/10/2026 11:44"],["2026-10",40728790,"JUAN PABLO ORELLANA","SECO ROBERTO ENRIQUE SV","MERCHAND","GAME PLAN - OCTUBRE","Completado",100.0,"08/10/2026 16:30","14/10/2026 03:18"],["2026-10",40728790,"JUAN PABLO ORELLANA","SECO ROBERTO ENRIQUE SV","MERCHAND","Pedido Sugerido - AR","Completado",100.0,"06/10/2026 04:16","14/10/2026 03:27"],["2026-10",40728790,"JUAN PABLO ORELLANA","SECO ROBERTO ENRIQUE SV","MERCHAND","Cómo ganar puntos en CLUB B - AR","Completado",100.0,"06/10/2026 04:20","14/10/2026 02:54"]]};
+const ROSTER_DATA = [["LAUTARO RUBEN SALINA","CORSINO PEDRO"],["RODRIGO D´URSO PAEZ","ANTUAL PAULA"],["MARQUEZ JOAQUIN","MORENO FERNANDO"],["FIGUEROA  JONATHAN","ANTUAL PAULA"],["LEON ABRIL CANDELA","ANTUAL PAULA"],["ACEVEDO MARIA EUGENIA","CORSINO PEDRO"],["MAXIMILIANO FRANCISCO MARTIRE","MORENO FERNANDO"],["MILLAIN BETIANA","CORSINO PEDRO"],["MORA MAURO","CORSINO PEDRO"],["JUAN CARLOS VEGA","CORSINO PEDRO"],["MUÑOZ DAMIAN","CORSINO PEDRO"],["ALTAMIRANO BAHAMONDES TOMAS","CORSINO PEDRO"],["MORA MATIAS ARIEL","MORENO FERNANDO"],["ARAVENA CRISTIAN ADRIÁN","MORENO FERNANDO"],["NUÑEZ MAURO","MORENO FERNANDO"],["KEBERLEIN ARIANA","MORENO FERNANDO"],["ORLANDO JOSÉ REYES MORA","MORENO FERNANDO"],["GOMEZ RAUL ALEJANDRO","SECO ROBERTO ENRIQUE SV"],["MELINAO LUCAS","SECO ROBERTO ENRIQUE SV"],["JOAQUIN GUSTAVO VALLEJOS","CORSINO PEDRO"],["VE EVENTOS","ANTUAL PAULA"],["SEPÚLVEDA EMANUEL OMAR","SECO ROBERTO ENRIQUE SV"],["MARIA FLORENCIA SANTIAGO","CORSINO PEDRO"],["JUAN PABLO ORELLANA","SECO ROBERTO ENRIQUE SV"],["SANDOVAL LUCAS IGNACIO","MORENO FERNANDO"],["MATIAS VERGE","MORENO FERNANDO"]];
+
+</script>
+<script>
+// ---------- state ----------
+// DETAIL_DATA = { rows:[[Mes,Usuario,Nombre,Supervisor,Rol,Curso,Estado,Avance,FechaInscripcion,FechaEntrega], ...] }
+// ROSTER_DATA = [[NombreCompleto, Supervisor], ...]  (base de "personal comercial" — fuente de verdad del supervisor de HOY)
+let detailState = JSON.parse(JSON.stringify(DETAIL_DATA));
+let roster = JSON.parse(JSON.stringify(ROSTER_DATA));
+let state = { meses: [], total: [], supervisores: [], vendedores: [] };
+
+function mesLabel(m){
+  const MESES = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const parts = String(m).split('-');
+  if (parts.length===2){
+    const mm = parseInt(parts[1],10);
+    if (mm>=1 && mm<=12) return MESES[mm] + ' ' + parts[0].slice(2);
+  }
+  return m;
+}
+
+// ---------- name matching (roster is the source of truth for "supervisor de hoy") ----------
+function normTokens(s){
+  const noAccents = String(s).normalize('NFD').replace(/[̀-ͯ]/g,'');
+  return new Set(noAccents.toUpperCase().replace(/[^A-Z ]/g,' ').split(/\s+/).filter(Boolean));
+}
+let rosterTokens = [];
+function rebuildRosterTokens(){
+  rosterTokens = roster.map(([nombre, sup])=>({nombre, sup, tokens: normTokens(nombre)}));
+}
+rebuildRosterTokens();
+
+function matchSupervisor(nombre){
+  const toks = normTokens(nombre);
+  let best = null, bestScore = 0;
+  rosterTokens.forEach(r=>{
+    let score = 0;
+    r.tokens.forEach(t=>{ if (toks.has(t)) score++; });
+    if (score > bestScore){ bestScore = score; best = r; }
+  });
+  return (best && bestScore>=1) ? best.sup : 'SIN ASIGNAR';
+}
+
+// ---------- rebuild aggregates from detail rows (always the source of truth) ----------
+function rebuildAggregatesFromDetail(){
+  // re-apply today's roster to every row so historical months also reflect current org structure
+  detailState.rows.forEach(r=>{ r[3] = matchSupervisor(r[2]); });
+
+  const meses = [...new Set(detailState.rows.map(r=>r[0]))].sort();
+  const total = [], supervisores = [], vendedores = [];
+
+  meses.forEach(mes=>{
+    const monthRows = detailState.rows.filter(r=>r[0]===mes);
+    const t = monthRows.length;
+    const c = monthRows.filter(r=>r[6]==='Completado').length;
+    total.push({Mes:mes, total:t, completados:c, pct: t? Math.round((c/t*1000))/10 : 0});
+
+    const bySup = {};
+    monthRows.forEach(r=>{
+      bySup[r[3]] = bySup[r[3]] || {total:0, completados:0};
+      bySup[r[3]].total++;
+      if (r[6]==='Completado') bySup[r[3]].completados++;
+    });
+    Object.entries(bySup).forEach(([sup,v])=>{
+      supervisores.push({Supervisor:sup, Mes:mes, total:v.total, completados:v.completados, pct: Math.round((v.completados/v.total*1000))/10});
+    });
+
+    const byVend = {};
+    monthRows.forEach(r=>{
+      const key = r[2]+'||'+r[3];
+      byVend[key] = byVend[key] || {total:0, completados:0, nombre:r[2], supervisor:r[3]};
+      byVend[key].total++;
+      if (r[6]==='Completado') byVend[key].completados++;
+    });
+    Object.values(byVend).forEach(v=>{
+      vendedores.push({Nombre:v.nombre, Supervisor:v.supervisor, Mes:mes, total:v.total, completados:v.completados, pct: Math.round((v.completados/v.total*1000))/10});
+    });
+  });
+
+  state = { meses, total, supervisores, vendedores };
+}
+
+// ---------- color thresholds: 100 verde · 80-99 amarillo · <80 rojo ----------
+function statusClass(pct){
+  if (pct === null || pct === undefined || isNaN(pct)) return 'na';
+  if (pct >= 100) return 'ok';
+  if (pct >= 80) return 'warn';
+  return 'bad';
+}
+function fmtPct(pct){
+  if (pct === null || pct === undefined || isNaN(pct)) return '—';
+  return pct.toFixed(1) + '%';
+}
+
+// ---------- KPI cards ----------
+function renderKpis(){
+  const tot = state.total;
+  if (!tot.length){
+    document.getElementById('kpiRow').innerHTML = '';
+    return;
+  }
+  const last = tot[tot.length-1];
+  const prev = tot.length>1 ? tot[tot.length-2] : null;
+  const delta = prev ? (last.pct - prev.pct) : null;
+  const cls = statusClass(last.pct);
+  const row = document.getElementById('kpiRow');
+  row.innerHTML = '';
+
+  const cards = [
+    {
+      label: `% completado — ${mesLabel(last.Mes)}`,
+      value: fmtPct(last.pct),
+      sub: `${last.completados} de ${last.total} cursos asignados`,
+      cls: cls,
+      pillText: last.pct >= 100 ? 'Objetivo cumplido' : 'Por debajo del objetivo',
+      pillCls: last.pct >= 100 ? 'ok' : (cls==='bad'?'bad':'warn')
+    },
+    {
+      label: 'Variación vs. mes anterior',
+      value: delta===null ? '—' : (delta>=0?'+':'') + delta.toFixed(1) + 'pp',
+      sub: prev ? `${mesLabel(prev.Mes)}: ${fmtPct(prev.pct)}` : '',
+      cls: delta===null ? '' : (delta>=0 ? 'status-ok' : 'status-bad'),
+    },
+    {
+      label: 'Cursos asignados',
+      value: last.total,
+      sub: `en ${mesLabel(last.Mes)}`,
+      cls: ''
+    },
+    {
+      label: 'Meses relevados',
+      value: state.meses.length,
+      sub: mesLabel(state.meses[0]) + ' → ' + mesLabel(state.meses[state.meses.length-1]),
+      cls: ''
+    }
+  ];
+
+  cards.forEach(c=>{
+    const div = document.createElement('div');
+    div.className = 'kpi ' + (c.cls && c.cls.startsWith('status-') ? c.cls : (c.cls?('status-'+c.cls):''));
+    div.innerHTML = `
+      <div class="label">${c.label}</div>
+      <div class="value">${c.value}</div>
+      <div class="sub">${c.sub}</div>
+      ${c.pillText ? `<div class="pill ${c.pillCls}">${c.pillText}</div>` : ''}
+    `;
+    row.appendChild(div);
+  });
+}
+
+// ---------- alerts: no completó el último mes + peor acumulado ----------
+function renderAlerts(){
+  const box1 = document.getElementById('alertIncompletos');
+  const box2 = document.getElementById('alertRanking');
+  if (!state.meses.length){ box1.innerHTML=''; box2.innerHTML=''; return; }
+
+  const lastMes = state.meses[state.meses.length-1];
+  const incompletos = state.vendedores
+    .filter(v=>v.Mes===lastMes && v.pct < 100)
+    .sort((a,b)=>a.pct-b.pct);
+
+  if (!incompletos.length){
+    box1.innerHTML = `<div class="alert-empty">Todos completaron el 100% de los cursos asignados en ${mesLabel(lastMes)}.</div>`;
+  } else {
+    box1.innerHTML = `<table class="alert-table"><thead><tr><th>Vendedor</th><th>Supervisor</th><th class="num">Avance</th><th class="num">Pendientes</th></tr></thead><tbody>` +
+      incompletos.map(v=>`<tr>
+        <td>${v.Nombre}</td>
+        <td>${v.Supervisor}</td>
+        <td class="num"><span class="cell-pct ${statusClass(v.pct)}">${fmtPct(v.pct)}</span></td>
+        <td class="num">${v.total - v.completados} de ${v.total}</td>
+      </tr>`).join('') + `</tbody></table>`;
+  }
+
+  // accumulated: sum completados/total across ALL months per vendedor
+  const accum = {};
+  state.vendedores.forEach(v=>{
+    const key = v.Nombre+'||'+v.Supervisor;
+    accum[key] = accum[key] || {nombre:v.Nombre, supervisor:v.Supervisor, total:0, completados:0};
+    accum[key].total += v.total;
+    accum[key].completados += v.completados;
+  });
+  const ranking = Object.values(accum)
+    .map(a=>({...a, pct: a.total? Math.round((a.completados/a.total*1000))/10 : 0}))
+    .sort((a,b)=>a.pct-b.pct)
+    .slice(0,8);
+
+  box2.innerHTML = `<table class="alert-table"><thead><tr><th>#</th><th>Vendedor</th><th>Supervisor</th><th class="num">% acumulado</th></tr></thead><tbody>` +
+    ranking.map((v,i)=>`<tr>
+      <td class="num">${i+1}</td>
+      <td>${v.nombre}</td>
+      <td>${v.supervisor}</td>
+      <td class="num"><span class="cell-pct ${statusClass(v.pct)}">${fmtPct(v.pct)}</span></td>
+    </tr>`).join('') + `</tbody></table>`;
+}
+
+// ---------- trend chart with Supervisor / Vendedor toggle ----------
+let chartInstance = null;
+let chartMode = 'supervisor'; // 'supervisor' | 'vendedor'
+let chartSupervisorFilter = null;
+
+function populateChartSupervisorSelect(){
+  const sel = document.getElementById('chartSupSelect');
+  const supervisors = [...new Set(state.supervisores.map(s=>s.Supervisor))].sort();
+  const prev = sel.value;
+  sel.innerHTML = supervisors.map(s=>`<option value="${s}">${s}</option>`).join('');
+  chartSupervisorFilter = supervisors.includes(prev) ? prev : supervisors[0];
+  sel.value = chartSupervisorFilter;
+}
+
+function renderChart(){
+  const ctx = document.getElementById('trendChart');
+  const meses = state.meses;
+  const palette = ['#c8862b','#3f7d4f','#a8402f','#1e3a4c','#7a5cae','#2f8fa0','#b3821f','#5c7a8a'];
+
+  let datasets = [];
+
+  if (chartMode === 'supervisor'){
+    const totPct = meses.map(m => (state.total.find(t=>t.Mes===m)||{}).pct ?? null);
+    datasets.push({
+      label: 'Total Logística Total',
+      data: totPct,
+      borderColor: '#1a2733', backgroundColor: '#1a2733',
+      borderWidth: 3, tension:.25, pointRadius: 4,
+    });
+    const supervisors = [...new Set(state.supervisores.map(s=>s.Supervisor))].sort();
+    supervisors.forEach((s,i)=>{
+      datasets.push({
+        label: s,
+        data: meses.map(m=>{
+          const row = state.supervisores.find(r=>r.Supervisor===s && r.Mes===m);
+          return row ? row.pct : null;
+        }),
+        borderColor: palette[i%palette.length], backgroundColor: palette[i%palette.length],
+        borderWidth: 2, tension:.25, pointRadius: 3,
+      });
+    });
+  } else {
+    const sup = chartSupervisorFilter;
+    const vendors = [...new Set(state.vendedores.filter(v=>v.Supervisor===sup).map(v=>v.Nombre))].sort();
+    vendors.forEach((v,i)=>{
+      datasets.push({
+        label: v,
+        data: meses.map(m=>{
+          const row = state.vendedores.find(r=>r.Nombre===v && r.Mes===m);
+          return row ? row.pct : null;
+        }),
+        borderColor: palette[i%palette.length], backgroundColor: palette[i%palette.length],
+        borderWidth: 2, tension:.25, pointRadius: 3,
+      });
+    });
+  }
+
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels: meses.map(mesLabel), datasets },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'bottom', labels:{boxWidth:12, font:{family:'Inter', size:11.5}}},
+        tooltip:{callbacks:{ label: (c)=> `${c.dataset.label}: ${c.raw===null?'s/d':c.raw.toFixed(1)+'%'}` }}
+      },
+      scales:{
+        y:{ min:0, suggestedMax:100, ticks:{callback:v=>v+'%'}, grid:{color:'#e7e2d3'} },
+        x:{ grid:{display:false} }
+      }
+    }
+  });
+}
+
+function setupChartControls(){
+  const btnSup = document.getElementById('chartModeSup');
+  const btnVend = document.getElementById('chartModeVend');
+  const supSelectWrap = document.getElementById('chartSupSelectWrap');
+  const sel = document.getElementById('chartSupSelect');
+
+  btnSup.addEventListener('click', ()=>{
+    chartMode = 'supervisor';
+    btnSup.classList.add('active'); btnVend.classList.remove('active');
+    supSelectWrap.style.display = 'none';
+    renderChart();
+  });
+  btnVend.addEventListener('click', ()=>{
+    chartMode = 'vendedor';
+    btnVend.classList.add('active'); btnSup.classList.remove('active');
+    supSelectWrap.style.display = '';
+    renderChart();
+  });
+  sel.addEventListener('change', ()=>{
+    chartSupervisorFilter = sel.value;
+    renderChart();
+  });
+}
+
+// ---------- table ----------
+function renderTable(){
+  const head = document.getElementById('tableHead');
+  const body = document.getElementById('tableBody');
+  const meses = state.meses;
+
+  head.innerHTML = `<th>Supervisor / Vendedor</th>` + meses.map(m=>`<th class="num">${mesLabel(m)}</th>`).join('') + `<th class="num">Cursos último mes</th>`;
+  body.innerHTML = '';
+
+  const supervisors = [...new Set(state.supervisores.map(s=>s.Supervisor))]
+    .sort((a,b)=>{
+      const la = (state.supervisores.find(r=>r.Supervisor===a && r.Mes===meses[meses.length-1])||{pct:-1}).pct;
+      const lb = (state.supervisores.find(r=>r.Supervisor===b && r.Mes===meses[meses.length-1])||{pct:-1}).pct;
+      return la-lb;
+    });
+
+  supervisors.forEach((sup)=>{
+    const tr = document.createElement('tr');
+    tr.className = 'supervisor-row';
+    tr.dataset.sup = sup;
+    const lastRow = state.supervisores.find(r=>r.Supervisor===sup && r.Mes===meses[meses.length-1]);
+    let cells = meses.map(m=>{
+      const row = state.supervisores.find(r=>r.Supervisor===sup && r.Mes===m);
+      const pct = row ? row.pct : null;
+      return `<td class="num"><span class="cell-pct ${statusClass(pct)}">${fmtPct(pct)}</span></td>`;
+    }).join('');
+    tr.innerHTML = `<td><span class="caret">▸</span>${sup}</td>${cells}<td class="num">${lastRow?lastRow.total:'—'}</td>`;
+    tr.addEventListener('click', ()=>toggleSupervisor(sup, tr));
+    body.appendChild(tr);
+
+    const vendors = [...new Set(state.vendedores.filter(v=>v.Supervisor===sup).map(v=>v.Nombre))]
+      .sort((a,b)=>{
+        const la = (state.vendedores.find(r=>r.Nombre===a && r.Mes===meses[meses.length-1])||{pct:-1}).pct;
+        const lb = (state.vendedores.find(r=>r.Nombre===b && r.Mes===meses[meses.length-1])||{pct:-1}).pct;
+        return la-lb;
+      });
+    vendors.forEach(v=>{
+      const vtr = document.createElement('tr');
+      vtr.className = 'vendor-row';
+      vtr.dataset.sup = sup;
+      const vLast = state.vendedores.find(r=>r.Nombre===v && r.Mes===meses[meses.length-1]);
+      let vcells = meses.map(m=>{
+        const row = state.vendedores.find(r=>r.Nombre===v && r.Mes===m);
+        const pct = row ? row.pct : null;
+        return `<td class="num"><span class="cell-pct ${statusClass(pct)}">${fmtPct(pct)}</span></td>`;
+      }).join('');
+      vtr.innerHTML = `<td>${v}</td>${vcells}<td class="num">${vLast?vLast.total:'—'}</td>`;
+      body.appendChild(vtr);
+    });
+  });
+}
+function toggleSupervisor(sup, tr){
+  tr.classList.toggle('expanded');
+  document.querySelectorAll(`tr.vendor-row[data-sup="${CSS.escape(sup)}"]`).forEach(r=>r.classList.toggle('open'));
+}
+
+// ---------- detail by course ----------
+function estadoClass(estado){
+  if (estado==='Completado') return 'ok';
+  if (estado==='En progreso') return 'warn';
+  return 'bad';
+}
+
+function populateFilterOptions(){
+  const fMes = document.getElementById('fMes');
+  const prevMes = fMes.value;
+  fMes.innerHTML = state.meses.map(m=>`<option value="${m}">${mesLabel(m)}</option>`).join('');
+  fMes.value = state.meses.includes(prevMes) ? prevMes : state.meses[state.meses.length-1];
+
+  const fSup = document.getElementById('fSup');
+  const supervisors = [...new Set(detailState.rows.map(r=>r[3]))].sort();
+  const prevSup = fSup.value;
+  fSup.innerHTML = '<option value="">Todos</option>' + supervisors.map(s=>`<option value="${s}">${s}</option>`).join('');
+  fSup.value = supervisors.includes(prevSup) ? prevSup : '';
+
+  refreshVendorOptions();
+
+  [fMes, fSup, document.getElementById('fVend'), document.getElementById('fEstado')].forEach(el=>{
+    el.removeEventListener('change', renderDetailTable);
+    el.addEventListener('change', renderDetailTable);
+  });
+  fSup.removeEventListener('change', onFSupChange);
+  fSup.addEventListener('change', onFSupChange);
+  const fSearch = document.getElementById('fSearch');
+  fSearch.removeEventListener('input', renderDetailTable);
+  fSearch.addEventListener('input', renderDetailTable);
+}
+function onFSupChange(){ refreshVendorOptions(); renderDetailTable(); }
+
+function refreshVendorOptions(){
+  const fSup = document.getElementById('fSup').value;
+  const fVend = document.getElementById('fVend');
+  const prev = fVend.value;
+  let vendors = [...new Set(detailState.rows.filter(r=> !fSup || r[3]===fSup).map(r=>r[2]))].sort();
+  fVend.innerHTML = '<option value="">Todos</option>' + vendors.map(v=>`<option value="${v}">${v}</option>`).join('');
+  if (vendors.includes(prev)) fVend.value = prev;
+}
+
+function renderDetailTable(){
+  if (!state.meses.length){
+    document.getElementById('detailBody').innerHTML = `<tr class="empty-row"><td colspan="8">Sin datos cargados todavía.</td></tr>`;
+    document.getElementById('detailCount').textContent = '';
+    return;
+  }
+  const mes = document.getElementById('fMes').value;
+  const sup = document.getElementById('fSup').value;
+  const vend = document.getElementById('fVend').value;
+  const estado = document.getElementById('fEstado').value;
+  const search = document.getElementById('fSearch').value.trim().toLowerCase();
+
+  let rows = detailState.rows.filter(r=> r[0]===mes );
+  if (sup) rows = rows.filter(r=>r[3]===sup);
+  if (vend) rows = rows.filter(r=>r[2]===vend);
+  if (estado) rows = rows.filter(r=>r[6]===estado);
+  if (search) rows = rows.filter(r=> r[2].toLowerCase().includes(search) || r[5].toLowerCase().includes(search));
+
+  rows = rows.slice().sort((a,b)=> a[7]-b[7]);
+
+  const body = document.getElementById('detailBody');
+  const countEl = document.getElementById('detailCount');
+  const completados = rows.filter(r=>r[6]==='Completado').length;
+  countEl.textContent = `${rows.length} curso${rows.length===1?'':'s'} · ${completados} completados`;
+
+  if (!rows.length){
+    body.innerHTML = `<tr class="empty-row"><td colspan="8">No hay registros para este filtro.</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = rows.map(r=>{
+    const [_, usuario, nombre, supervisor, rol, curso, estadoVal, avance, fi, fe] = r;
+    return `<tr>
+      <td>${nombre}</td>
+      <td>${supervisor}</td>
+      <td>${rol}</td>
+      <td>${curso}</td>
+      <td class="num">${avance.toFixed(0)}%</td>
+      <td class="num"><span class="estado-dot ${estadoClass(estadoVal)}"></span>${estadoVal}</td>
+      <td>${fi}</td>
+      <td>${fe}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ---------- render all ----------
+function renderAll(){
+  rebuildAggregatesFromDetail();
+  renderKpis();
+  renderAlerts();
+  populateChartSupervisorSelect();
+  renderChart();
+  renderTable();
+  populateFilterOptions();
+  renderDetailTable();
+}
+setupChartControls();
+renderAll();
+
+// ================= UPLOAD 1: nuevo mes de BEES Academy =================
+const fileInput = document.getElementById('fileInput');
+const uploadStatus = document.getElementById('uploadStatus');
+const downloadBtn = document.getElementById('downloadBtn');
+
+fileInput.addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if (!file) return;
+  uploadStatus.className = 'upload-status';
+  uploadStatus.textContent = 'Procesando ' + file.name + '…';
+
+  const reader = new FileReader();
+  reader.onload = (evt)=>{
+    try{
+      const wb = XLSX.read(evt.target.result, {type:'array'});
+      const result = processBeesWorkbook(wb);
+      if (!result.ok){
+        uploadStatus.className = 'upload-status err';
+        uploadStatus.textContent = result.msg;
+        return;
+      }
+      const monthsTouched = [...new Set(result.rows.map(r=>r[0]))];
+      detailState.rows = detailState.rows.filter(r=>!monthsTouched.includes(r[0]));
+      detailState.rows.push(...result.rows);
+
+      let msg = `Listo: ${result.monthsFound.map(mesLabel).join(', ')} cargado(s) — ${result.rows.length} registros.`;
+      if (result.unknownNames.length){
+        msg += ` ${result.unknownNames.length} persona(s) sin coincidencia en la base de personal: ${result.unknownNames.slice(0,5).join(', ')}${result.unknownNames.length>5?'…':''} — quedaron como "SIN ASIGNAR".`;
+      }
+      uploadStatus.className = result.unknownNames.length ? 'upload-status' : 'upload-status ok';
+      uploadStatus.textContent = msg;
+      downloadBtn.disabled = false;
+      renderAll();
+    }catch(err){
+      uploadStatus.className = 'upload-status err';
+      uploadStatus.textContent = 'No se pudo leer el archivo: ' + err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+function excelDateToStr(v){
+  if (v===null || v===undefined || v==='') return '';
+  if (typeof v === 'number'){
+    const d = XLSX.SSF.parse_date_code(v);
+    if (!d) return String(v);
+    const pad = n=>String(n).padStart(2,'0');
+    return `${pad(d.d)}/${pad(d.m)}/${d.y} ${pad(d.H||0)}:${pad(d.M||0)}`;
+  }
+  return String(v);
+}
+
+function processBeesWorkbook(wb){
+  let found = null;
+  for (const sheetName of wb.SheetNames){
+    const ws = wb.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(ws, {defval:null});
+    if (!rows.length) continue;
+    const cols = Object.keys(rows[0]);
+    const nombreCol = cols.find(c=>/^nombre$/i.test(c.trim()));
+    const usuarioCol = cols.find(c=>/^usuario$/i.test(c.trim()));
+    const cursoCol = cols.find(c=>/^curso$/i.test(c.trim()));
+    const estadoCol = cols.find(c=>/^estado$/i.test(c.trim()));
+    const avanceCol = cols.find(c=>/avance/i.test(c));
+    const mesCol = cols.find(c=>/^mes$/i.test(c.trim()));
+    const rolCol = cols.find(c=>/^rol$/i.test(c.trim()));
+    const fiCol = cols.find(c=>/inscripci/i.test(c));
+    const feCol = cols.find(c=>/entrega/i.test(c));
+    if (nombreCol && usuarioCol && cursoCol && estadoCol){
+      found = {rows, nombreCol, usuarioCol, cursoCol, estadoCol, avanceCol, mesCol, rolCol, fiCol, feCol};
+      break;
+    }
+  }
+  if (!found){
+    return {ok:false, msg:'No encontré las columnas esperadas (Nombre, Usuario, Curso, Estado) en ninguna hoja del archivo.'};
+  }
+  const {rows, nombreCol, usuarioCol, cursoCol, estadoCol, avanceCol, mesCol, rolCol, fiCol, feCol} = found;
+
+  const unknownNames = [];
+  const outRows = [];
+  const monthsFound = new Set();
+  rows.forEach(r=>{
+    const usuario = String(r[usuarioCol]).trim();
+    if (!usuario || usuario==='null') return;
+    const nombre = String(r[nombreCol]).trim();
+    const supervisor = matchSupervisor(nombre);
+    if (supervisor==='SIN ASIGNAR' && !unknownNames.includes(nombre)) unknownNames.push(nombre);
+
+    let mes = mesCol ? String(r[mesCol]).trim() : '';
+    if (!mes && feCol && r[feCol]){
+      const ds = excelDateToStr(r[feCol]);
+      const m = ds.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+      if (m) mes = `${m[3]}-${m[2]}`;
+    }
+    if (!mes) return;
+    monthsFound.add(mes);
+
+    outRows.push([
+      mes, usuario, nombre, supervisor,
+      rolCol ? String(r[rolCol]||'') : '',
+      String(r[cursoCol]||''),
+      String(r[estadoCol]||''),
+      avanceCol ? Number(r[avanceCol])||0 : (String(r[estadoCol]).trim()==='Completado'?100:0),
+      fiCol ? excelDateToStr(r[fiCol]) : '',
+      feCol ? excelDateToStr(r[feCol]) : ''
+    ]);
+  });
+
+  return {ok:true, rows:outRows, unknownNames, monthsFound:[...monthsFound].sort()};
+}
+
+// ================= UPLOAD 2: base de personal comercial (vendedor -> supervisor) =================
+const rosterFileInput = document.getElementById('rosterFileInput');
+const rosterStatus = document.getElementById('rosterStatus');
+
+rosterFileInput.addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if (!file) return;
+  rosterStatus.className = 'upload-status';
+  rosterStatus.textContent = 'Procesando ' + file.name + '…';
+
+  const reader = new FileReader();
+  reader.onload = (evt)=>{
+    try{
+      const wb = XLSX.read(evt.target.result, {type:'array'});
+      const result = processRosterWorkbook(wb);
+      if (!result.ok){
+        rosterStatus.className = 'upload-status err';
+        rosterStatus.textContent = result.msg;
+        return;
+      }
+      roster = result.roster;
+      rebuildRosterTokens();
+      rosterStatus.className = 'upload-status ok';
+      rosterStatus.textContent = `Listo: base de personal actualizada — ${roster.length} vendedores con supervisor. Se reasignó el supervisor en todos los meses cargados.`;
+      downloadBtn.disabled = false;
+      renderAll();
+    }catch(err){
+      rosterStatus.className = 'upload-status err';
+      rosterStatus.textContent = 'No se pudo leer el archivo: ' + err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+function processRosterWorkbook(wb){
+  for (const sheetName of wb.SheetNames){
+    const ws = wb.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(ws, {defval:null});
+    if (!rows.length) continue;
+    const cols = Object.keys(rows[0]);
+    const descCol = cols.find(c=>/descripci/i.test(c));
+    const superiorCol = cols.find(c=>/superior/i.test(c));
+    const cargoCol = cols.find(c=>/cargo/i.test(c));
+    if (!descCol || !superiorCol) continue;
+    let filtered = rows;
+    if (cargoCol) filtered = rows.filter(r=> String(r[cargoCol]).trim().toUpperCase()==='VENDEDOR');
+    const out = filtered
+      .filter(r=> r[descCol] && r[superiorCol])
+      .map(r=> [String(r[descCol]).trim(), String(r[superiorCol]).trim()]);
+    if (out.length) return {ok:true, roster: out};
+  }
+  return {ok:false, msg:'No encontré las columnas esperadas (Descripción, Superior) en ninguna hoja del archivo.'};
+}
+
+// ---------- export updated dashboard ----------
+downloadBtn.addEventListener('click', ()=>{
+  const newPayload = `const DETAIL_DATA = ${JSON.stringify(detailState)};\nconst ROSTER_DATA = ${JSON.stringify(roster)};\n`;
+  const fullHtml = document.documentElement.outerHTML;
+  const doc = '<!DOCTYPE html>\n' + fullHtml.replace(
+    /const DETAIL_DATA[\s\S]*?const ROSTER_DATA = [\s\S]*?;\n/,
+    newPayload
+  );
+  const blob = new Blob([doc], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'bees_academy_avance.html';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+</script>
+</body>
+</html>
